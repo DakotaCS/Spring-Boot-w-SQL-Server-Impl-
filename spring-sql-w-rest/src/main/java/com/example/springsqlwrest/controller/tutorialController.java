@@ -1,25 +1,16 @@
 package com.example.springsqlwrest.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.example.springsqlwrest.dto.tutorialDto;
+import com.example.springsqlwrest.model.Tutorial;
+import com.example.springsqlwrest.repository.tutorialRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.springsqlwrest.model.Tutorial;
-import com.example.springsqlwrest.repository.tutorialRepo;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 @CrossOrigin(origins = "http://localhost:8080")
 @RestController
 @RequestMapping("/api")
@@ -27,79 +18,111 @@ public class tutorialController {
 
     @Autowired
     tutorialRepo tutorialRepository;
-    @GetMapping("/tutorials")
-    public ResponseEntity<List<Tutorial>> getAllTutorials(@RequestParam(required=false) String title) {
-        try {
-            List<Tutorial> tutorials = new ArrayList<Tutorial>();
-            if (title == null)
-                tutorialRepository.findAll().forEach(tutorials::add);
-            else
-                tutorialRepository.findByTitleContaining(title).forEach(tutorials::add);
-            if (tutorials.isEmpty()){
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/tutorials/getAll")
+    public ResponseEntity<Iterable<Tutorial>> getAllTutorials() {
+            try {
+                if (tutorialRepository.count() == 0)
+                {
+                    System.out.println("No content found");
+                    return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+                }
+                else
+                    System.out.println("Tutorial list displayed");
+                    return new ResponseEntity<>(tutorialRepository.findAll(), HttpStatus.OK);
             }
-            return new ResponseEntity<>(tutorials, HttpStatus.OK);
-        }
-        catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            catch (Exception e) {
+                System.out.println("Internal server error");
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
     }
 
-    @GetMapping("/tutorials/{id}")
+    @GetMapping("/tutorials/getById-{id}")
     public ResponseEntity<Tutorial> getTutorialById(@PathVariable("id") long id) {
         Optional<Tutorial> tutorialData = tutorialRepository.findById(id);
 
         if (tutorialData.isPresent()) {
+            System.out.println("Tutorial with id " + id + " found");
             return new ResponseEntity<>(tutorialData.get(), HttpStatus.OK);
         }
         else {
+            System.out.println("Tutorial with id " + id + " not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PostMapping("/tutorials")
-    public ResponseEntity<Tutorial> createTutorial(@RequestBody Tutorial tutorial) {
+    @GetMapping("/tutorials/getByTitle")
+    public ResponseEntity<List<Tutorial>> getAllTutorials(@RequestParam(required=true) String title) {
         try {
-            Tutorial _tutorial = tutorialRepository.save(new Tutorial
-                    (tutorial.getTitle(), tutorial.getDescription(), tutorial.isPublished()));
-            return new ResponseEntity<>(_tutorial, HttpStatus.CREATED);
-        }
-        catch (Exception e){
+            List<Tutorial> tutorials = new ArrayList<Tutorial>();
+            tutorialRepository.findByTitleContaining(title).forEach(tutorials::add);
+            if (tutorials.isEmpty()) {
+                System.out.println("No content found");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            System.out.println("Tutorial with title " + title + " found");
+            return new ResponseEntity<>(tutorials, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println("Internal server error");
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping("/tutorials/{id}")
+    //Does a similar operation as @GetMapping("/tutorials/getAll") but using POST rather than GET.
+    //Also demonstrates the use of a simple DTO
+    //utilize a simple DTO rather than accessing the model class directly
+    @PostMapping("/tutorials/displayAll")
+    public ResponseEntity<Tutorial> createTutorial(@RequestBody tutorialDto tutorial) {
+        try {
+            Tutorial _tutorial = tutorialRepository.save(new Tutorial
+                    (tutorial.title, tutorial.description, tutorial.published));
+            System.out.println("Tutorial creation via DTO succeeded");
+            return new ResponseEntity<>(_tutorial, HttpStatus.CREATED);
+        }
+        catch (Exception e){
+            System.out.println("Tutorial creation via DTO failed");
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/tutorials/deleteById-{id}")
     public ResponseEntity<HttpStatus> deleteTutorial(@PathVariable("id") long id) {
         try {
             tutorialRepository.deleteById(id);
+            System.out.println("Tutorial Id# " + id + " deleted");
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
+            System.out.println("Tutorial deletion failed");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping("/tutorials")
+    @DeleteMapping("/tutorials/deleteAll")
     public ResponseEntity<HttpStatus> deleteAllTutorials() {
         try {
             tutorialRepository.deleteAll();
+            System.out.println("Tutorial list deleted");
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
         } catch (Exception e) {
+            System.out.println("Tutorial list delete failed");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
-    @GetMapping("/tutorials/published")
+    @GetMapping("/tutorials/findByPublished")
     public ResponseEntity<List<Tutorial>> findByPublished() {
         try {
             List<Tutorial> tutorials = tutorialRepository.findByPublished(true);
 
             if (tutorials.isEmpty()) {
+                System.out.println("No content displayed");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
+            System.out.println("Published tutorials displayed");
             return new ResponseEntity<>(tutorials, HttpStatus.OK);
         } catch (Exception e) {
+            System.out.println("Internal server error");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
