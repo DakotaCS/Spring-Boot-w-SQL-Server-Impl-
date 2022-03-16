@@ -34,5 +34,4 @@ public class Tutorial {
     public boolean isPublished() {
         return published;
     }
-
 }

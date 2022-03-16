@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.springsqlwrest.model.Tutorial;
 import com.example.springsqlwrest.repository.tutorialRepo;
 
-//@CrossOrigin(origins = "http://localhost:8082")
+@CrossOrigin(origins = "http://localhost:8080")
 @RestController
 @RequestMapping("/api")
 public class tutorialController {
