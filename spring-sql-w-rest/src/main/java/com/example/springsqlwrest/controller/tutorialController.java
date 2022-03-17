@@ -67,10 +67,9 @@ public class tutorialController {
         }
     }
 
-    //Does a similar operation as @GetMapping("/tutorials/getAll") but using POST rather than GET.
     //Also demonstrates the use of a simple DTO
     //utilize a simple DTO rather than accessing the model class directly
-    @PostMapping("/tutorials/displayAll")
+    @PostMapping("/tutorials/addTutorial")
     public ResponseEntity<Tutorial> createTutorial(@RequestBody tutorialDto tutorial) {
         try {
             Tutorial _tutorial = tutorialRepository.save(new Tutorial
@@ -120,6 +119,23 @@ public class tutorialController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             System.out.println("Published tutorials displayed");
+            return new ResponseEntity<>(tutorials, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println("Internal server error");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/tutorials/getById")
+    public ResponseEntity<List<Tutorial>> getAllById() {
+        try {
+            List<Tutorial> tutorials = tutorialRepository.findByIdIs();
+
+            if (tutorials.isEmpty()) {
+                System.out.println("No content displayed");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            System.out.println("Tutorials displayed");
             return new ResponseEntity<>(tutorials, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println("Internal server error");
