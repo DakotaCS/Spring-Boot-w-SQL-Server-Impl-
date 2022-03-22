@@ -3,7 +3,9 @@ package com.example.springsqlwrest.model;
 import lombok.*;
 
 import javax.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.example.springsqlwrest.audit.Auditable;
 
 @Entity
 @NamedNativeQuery(name= "Tutorial.findByIdIs",
@@ -11,7 +13,7 @@ import javax.persistence.*;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "tutorials")
-public class Tutorial {
+public class Tutorial extends Auditable<String>{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
